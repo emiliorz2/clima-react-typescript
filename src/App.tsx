@@ -1,11 +1,21 @@
-
-import './App.css'
+import styles from './App.module.css'
+import { Form } from './components/Form/Form'
+import useWeather from './components/hooks/useWeather'
 
 function App() {
 
+  const { fetchWeather } = useWeather()
+
   return (
     <>
-      <h1>buscador de clima</h1>
+      <h1 className={styles.title}>Buscador de Clima</h1>
+
+      <div className={styles.container}>
+        <Form 
+          fetchWeather={fetchWeather}
+        />
+
+      </div>
     </>
   )
 }
