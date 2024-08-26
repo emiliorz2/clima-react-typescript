@@ -1,5 +1,5 @@
 import axios from "axios"
-import { z } from "zod"
+import { set, z } from "zod"
 // import { object, string, number, InferOutput, parse } from "valibot"
 import { SeachType } from "../../types"
 import { useMemo, useState } from "react"
@@ -39,26 +39,40 @@ export type Weather = z.infer<typeof Weather>
 
 // type Weather = InferOutput<typeof WeatherSchema>
 
+const INITIAL_STATE = {
+    name: "",
+    main: {
+        temp: 0,
+        temp_min: 0,
+        temp_max: 0
+    }
+}
+
 export default function useWeather() {
 
-    const [weather, setWeather] = useState<Weather>({
-        name: "",
-        main: {
-            temp: 0,
-            temp_min: 0,
-            temp_max: 0
-        }
-    })
+    const [ weather, setWeather ] = useState<Weather>(INITIAL_STATE)
+
+    const [ loading, setLoading ] = useState(false)
+
+    const [ notfound , setNotFound ] = useState(false)
 
     const fetchWeather = async (search: SeachType) => {
 
         const appId = import.meta.env.VITE_API_KEY
+        setLoading(true)
+        setWeather(INITIAL_STATE)
         try {
             
-            const geoURL = `http://api.openweathermap.org/geo/1.0/direct?q=${search.city},${search.country}&appid=${appId}`
+            const geoURL = `https://api.openweathermap.org/geo/1.0/direct?q=${search.city},${search.country}&appid=${appId}`
 
             const { data }  = await axios.get(geoURL)
             
+            //comprobar si hay datos
+            if(!data[0]){
+                setNotFound(true)
+                console.log("No hay datos")
+                return
+            }
 
             const lat = data[0].lat
             const lon = data[0].lon
@@ -96,6 +110,8 @@ export default function useWeather() {
 
         } catch (error) {
             console.log(error)
+        }finally{
+            setLoading(false)
         }
     }
 
@@ -103,7 +119,10 @@ export default function useWeather() {
 
     return {
         weather,
+        loading,
+        notfound,
         fetchWeather,
         hasWeatherData
+        
     }
 }
